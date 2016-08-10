@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>React for designers</title>
+    <meta charset="utf-8">
+    <style>
+      @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+      @import url(https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
+      @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+
+      body { font-family: 'Droid Serif'; }
+
+      h1, h2, h3 {
+        font-family: 'Yanone Kaffeesatz';
+        font-weight: normal;
+        font-size: 40px;
+      }
+
+      .remark-slide-content {
+        background-image: url('images/bg_1.jpg');
+        font-size: 25px;
+      }
+
+      .code-font-sm .remark-code {
+        font-size: 19px;
+      }
+
+      .remark-code {
+        font-size: 22px;
+      }
+
+      .centered-image p {
+        text-align: center;
+      }
+
+      .clean-bg-image {
+        background-image: url('images/bg_2.jpg');
+      }
+
+      .cover-image {
+        background-image: url('images/bg_cover.jpg');
+      }
+
+      .cover-image h1 {
+        color: #fff;
+        font-size: 75px;
+      }
+
+      .remark-slide-number {
+        display: none;
+      }
+
+      ul li {
+        margin-bottom: 20px;
+      }
+
+      img[alt=flux-image] { width: 100%; }
+
+      .image-only p {
+        text-align: center;
+      }
+
+      .footnote {
+        position: absolute;
+        bottom: 3em;
+      }
+
+      .red {
+        color: #fa0000;
+      }
+
+      .jquery-flux img {
+        width: 536px;
+      }
+
+      .ecosystem-image img {
+        width: 650px;
+      }
+
+      .mvc-image img {
+        width: 185px;
+      }
+
+      .mvc-right-class {
+        position: absolute;
+        right: 222px;
+      }
+
+      .mvc-left-class {
+        position: absolute;
+        left: 222px;
+      }
+
+      .isomorph-image img {
+        width: 470px;
+      }
+
+      .safadao-anjo h1 {
+        font-size: 52px;
+      }
+
+      .safadao-anjo img {
+        margin-top: 30px;
+      }
+
+      .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
+    </style>
+  </head>
+  <body>
+    <textarea id="source">
+
+class: center, middle, cover-image
+
+# Django and React.js
+
+---
+
+# Who am I
+
+André Ericson
+
+github.com/aericson
+
+twitter.com/_aericson
+
+Developer @ vinta.com.br
+
+???
+- Experiência;
+- Coisas que gosta de trabalhar;
+
+Vinta
+- Ambiente de trabalho;
+- Projetos que trabalhamos;
+- Ultimas ferramentas que tem trabalhado.
+- Mais informações, falar comigo durante o evento;
+
+---
+# Projetos
+--
+
+- [http://www.cdrf.co](http://www.cdrf.co) (ccbv.co.uk para o rest framework)
+--
+
+- [http://helpmeimport.aericson.me/](http://helpmeimport.aericson.me/)
+
+---
+
+# Introdução
+- O que aprendemos na vinta usando React com Django.
+--
+
+- Essa não é uma talk ensinando React.
+--
+
+- Como introduzir React em um projeto Django.
+--
+
+- JavaScript foi feito em 10 dias
+--
+
+- ES6 é massa
+---
+# Ferramentas pra começar
+- Webpack/django-webpack-loader
+--
+
+- npm
+--
+
+- Babel
+--
+
+- React
+
+
+???
+- webpack é um module bundler
+- toma conta de dependencias
+- gerencia arquivos estaticos
+- transforma es6, hot reload e mais um monte de coisa.
+---
+class: center, middle
+# Multi page app
+
+---
+# React
+--
+
+```html
+<html>
+  <body>
+    <div id="example"></div>
+  </body>
+</html>
+```
+--
+
+```jsx
+class HelloMessage extends React.Component {
+  render() {
+    return <div>Hello {this.props.name}</div>;
+  }
+}
+ReactDOM.render(<HelloMessage name="John" />,
+                document.getElementById('example'));
+```
+---
+class: code-font-sm
+# Django templates
+
+```html
+<div>
+  {% for message in messages %}
+    <span>{message}</span>
+  {% endfor %}
+</div>
+```
+--
+
+```html
+<div id="chat-log"></div>
+```
+--
+
+```jsx
+class ChatLog extends React.Component {
+  render() {
+    return (
+      <div>
+        {this.props.messages.map(message =>
+          <span>{message}</span>
+        )}
+      </div>);
+  }
+}
+```
+---
+class: center, middle
+# 3 Níveis de separação de React e Django
+---
+class: centered-image clean-bg-image
+# Nível 1 - Cuspindo no JS
+
+--
+![Alt text](images/cuspe.jpg)
+---
+# Cuspindo no JS
+```python
+# views.py
+context['messages_json'] = json.dumps(["hello", "foo", "bar"])
+```
+--
+
+```html
+<script>
+window.MESSAGES = JSON.parse('{{ messages_json|safe }}');
+</script>
+```
+--
+
+```jsx
+<ChatLog messages={window.MESSAGES}/>
+```
+--
+
+.footnote[.red[*] Usar o serializer do Django Rest Framework]
+
+---
+# XSS
+
+```python
+context['messages'] = json.dumps(
+  [
+    "</script><script>alert('XSS')</script>",
+     "hello",
+     "foo"
+  ]
+)
+```
+
+---
+# Nível 2 - API calls
+--
+
+```jsx
+class ChatLog extends React.Component {
+  componentDidMount () {
+    fetch('/messages.json')
+
+      .then(function(response) {
+        return response.json()
+      }
+
+      ).then(function(json) {
+        this.setState({messages: json})
+      }
+
+      ).catch(function(ex) {
+        this.setState({error: ex})
+      })
+  }
+}
+```
+
+---
+class: centered-image
+# Refetch
+
+--
+![Alt text](images/refetch_2.png)
+
+---
+# Refetch
+
+```jsx
+<Route path="/messages/:userId" component={ChatLogContainer}/>
+
+export default connect((props) => ({
+  messagesFetch: `/api/messages/${props.params.userId}`
+}))(ChatLogContainer)
+
+class ChatLogContainer extends React.Component {
+  render () {
+    if (messagesFetch.pending) {
+      return <LoadingAnimation/>
+    } else if (messagesFetch.rejected) {
+      return <Error error={messagesFetch.reason}/>
+    } else if (messagesFetch.fulfilled) {
+      return <ChatLog messages={messagesFetch.value}/>
+    }
+  }
+}
+```
+---
+# Flux
+--
+
+![flux-image](images/flux1.png)
+--
+
+![flux-image](images/flux2.png)
+
+---
+class: jquery-flux
+# Flux
+
+![flux-image2](images/jquery_react.png)
+
+---
+class: centered-image ecosystem-image
+# JavaScript ecosystem
+![Alt text](images/javascript_eco_2.png)
+---
+# Flux Implementations
+- Flux
+- Redux
+- Fluxible
+- Reflux
+- Alt
+- Mcfly
+- Flummox
+- Lux
+- E uma tuia
+
+---
+class: center, middle
+# Single page apps
+---
+class: mvc-image
+# Nível 3 - Going all the way
+
+--
+.mvc-left-class[![Alt text](images/mvc_1.png)]
+--
+.mvc-right-class[![Alt text](images/mvc_2_edited.png)]
+
+---
+# Problemas
+
+- Desempenho
+--
+
+- SEO
+--
+
+- Código duplicado
+
+---
+class: centered-image
+# Isomorphic apps
+--
+
+.isomorph-image[![Alt text](images/isomorph_2.png)]
+---
+
+--
+# Spaghetti Code
+
+![Alt text](images/spaghetti.jpg)
+---
+class: clean-bg-image safadao-anjo
+> *"Pior que cuspir no prato que comeu, é voltar a comer no prato que cuspiu"*
+.right[Wesley]
+--
+
+![Alt text](images/safadao.jpg)
+
+# **Chega de codigo spaghetti, use React + flux!**
+
+---
+class: center, middle
+# Dúvidas?
+
+    </textarea>
+    <script src="https://gnab.github.io/remark/downloads/remark-latest.min.js">
+    </script>
+    <script>
+      var slideshow = remark.create();
+    </script>
+  </body>
+</html>

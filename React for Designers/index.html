@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>React for designers</title>
+    <meta charset="utf-8">
+    <style>
+      @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+      @import url(https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
+      @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+
+      body { font-family: 'Droid Serif'; }
+      h1, h2, h3 {
+        font-family: 'Yanone Kaffeesatz';
+        font-weight: normal;
+      }
+
+      ul li {
+        margin-bottom: 20px;
+      }
+
+      img[alt=react-style-diagram] { width: 500px; }
+
+      .image-only p {
+        text-align: center;
+      }
+
+      .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
+    </style>
+  </head>
+  <body>
+    <textarea id="source">
+
+class: center, middle
+
+# React for designers
+
+## What you need to know to start.
+
+---
+
+# Components
+
+```javascript
+var CommentForm = React.createClass({
+  render: function() {
+    return (
+      <div className="commentForm">
+        Hello, world! I am a CommentForm.
+      </div>
+    );
+  }
+});
+```
+or with ES6 classes
+
+```javascript
+class CommentForm extends React.Component {
+  render() {
+    return (
+      <div className="commentForm">
+        Hello, world! I am a CommentForm.
+      </div>
+    );
+  }
+};
+```
+
+---
+# Function components
+
+```javascript
+const Title = (props) => {
+  return <h1>{props.title}</h1>
+}
+```
+
+---
+
+# Composing Components
+
+```javascript
+var CommentBox = React.createClass({
+  render: function() {
+    return (
+      <div className="commentBox">
+        <h1>Comments</h1>
+        <CommentForm/>
+      </div>
+    );
+  }
+});
+```
+
+---
+# dynamic values in the html
+
+```javascript
+var CommentBox = React.createClass({
+  render: function() {
+    return (
+      <div className="commentBox">
+        <h1>{"hello " + "world!"}</h1>
+      </div>
+    );
+  }
+});
+```
+
+--
+## including jsx
+
+```javascript
+var CommentBox = React.createClass({
+  render: function() {
+    return (
+      <div className="commentBox">
+        <h1>{true ? <span className="foo">hello</span> :
+              <span className="bar">hello</span>}</h1>
+      </div>
+    );
+  }
+});
+```
+
+---
+
+# props
+
+```javascript
+var Comment = React.createClass({
+  render: function() {
+    return (
+      <div className="comment">
+        <h2 className="commentAuthor">
+          {this.props.author}
+        </h2>
+        {this.props.children}
+      </div>
+    );
+  }
+});
+```
+
+--
+## usage:
+
+```html
+  <Comment author="Pete Hunt">This is one comment</Comment>
+  <Comment author="Jordan Walke">This is *another* comment</Comment>
+```
+
+
+---
+
+# PropTypes
+
+```javascript
+ActiveAgentsList.propTypes = {
+  application: PropTypes.object,
+  restartAgents: PropTypes.func.isRequired,
+  fetchDeploy: PropTypes.func.isRequired,
+  isFetchingDeploy: PropTypes.bool.isRequired,
+  isAppAdmin: PropTypes.bool.isRequired,
+}
+```
+---
+
+# Handling events
+
+
+```javascript
+var TweetBox = React.createClass({
+  handleChange: function(event) {
+    console.log(event.target.value);
+  },
+
+  render: function() {
+    return (
+      <div>
+        <textarea onChange={this.handleChange}>
+        &lt;/textarea&gt;
+        <button disabled>Tweet</button>
+      </div>
+    );
+  }
+});
+```
+
+---
+# States (jquery)
+
+![Alt text](images/jquery-style-1.png)
+---
+# States (react)
+
+![Alt text](images/react-style-2.png)
+
+---
+# Changing the state
+
+```javascript
+var TweetBox = React.createClass({
+  getInitialState: function() {
+    return {
+      text: ""
+    };
+  },
+  handleChange: function(event) {
+    this.setState({ text: event.target.value });
+  },
+  render: function() {
+    return (
+      <div>
+        <textarea onChange={this.handleChange}>
+        &lt;/textarea&gt;
+        <br/>
+        <button disabled={!this.state.text}>Tweet</button>
+      </div>
+    );
+  }
+});
+```
+
+---
+class: image-only
+# UI changes
+
+![react-style-diagram](images/jquery-style-vs-react-style.png)
+
+---
+class: middle center
+# Now that you know the basics, some things you should know to do your work as a designer.
+
+---
+
+# Inline style tag. Because that's what design is all about!
+
+```javascript
+<h3 style={{textAlign: 'center'}}>Coming Soon</h3>
+```
+
+---
+# And then after your inner designer complains about it you add classes.
+
+```javascript
+// class in JSX is className
+<h3 className="center-text">Coming Soon</h3>
+// And to dynamically add classes
+import cn from 'classnames';
+
+// lots of arguments of various types
+cn('foo', { bar: true, duck: false }, 'baz', { quux: true });
+// => 'foo bar baz quux'
+```
+
+---
+class: middle center
+
+# Things you do in a django template in react
+
+---
+# Conditionals
+
+```javascript
+// For simple conditions you can use ternary expressions
+<h3 className="center-text">
+  { isItDoneYet ? "We have a title" : "Coming Soon" }
+</h3>
+```
+--
+```javascript
+// we can't add if/else there since it's not an expression but we can use
+// arrow expressions
+<h3 className="center-text">
+  {(() => {
+    if (isItDoneYet) {
+      return "We have a title";
+    } else {
+      return "Coming Soon";
+    }
+  })()}
+</h3>
+```
+
+---
+# Iterating over data
+
+```javascript
+<ul>
+  {(() => {
+    let theList = [];
+    for (let appUser of this.props.appUsers[application.id]) {
+      theList.push(<li key={appUser.id}>{appUser.email}</li>);
+    }
+    return theList;
+  })()}
+</ul>
+```
+--
+## or better yet:
+```javascript
+<ul>
+  {this.props.appUsers[application.id].map(
+    (appUser) => {
+      return (
+        <li key={appUser.id}>
+          { appUser.email }
+        </li>
+      )
+    }
+  )}
+</ul>
+```
+
+---
+
+# Template tags and filters
+
+## just use javascript methods/functions
+
+```javascript
+<span>{formatDate(this.state.date)}</span>
+```
+--
+
+### or create a method:
+
+```javascript
+<span<{this.getFormatedDate()}</span>
+```
+
+---
+class: middle center
+
+# Containers vs Components
+
+---
+
+# Components
+
+* How things look
+--
+
+* Dumb components
+--
+
+* Receives data and callbacks via `props`
+
+---
+
+# Component
+
+```javascript
+import React, { Component } from 'react';
+import Pager from 'components/ui/pager';
+
+class Pagination extends Component {
+  render() {
+    const { total, offset, limit } = this.props.pagination;
+    const current = offset / limit;
+
+    return (
+      <Pager total={total} current={current} />
+    )
+  }
+}
+
+export default Pagination;
+```
+---
+
+# Container
+
+* How things work
+--
+
+* Smart components
+--
+
+* Call Flux actions and provide these as callbacks to dumb components.
+
+--
+* Provides data and behavior to presentation and container components
+
+---
+
+# Container
+
+```javascript
+class PropertiesContainer extends Component {
+  render() {
+    return (
+      <section>
+        <Filter filter={this.props.properties.params.filter} />
+        <List items={this.props.properties.items}
+              isFetching={this.props.properties.isFetching} />
+        <Pagination pagination={this.props.properties.params.pagination} />
+      </section>
+    );
+  }
+}
+
+function mapState(state) {
+  const { properties } = state;
+
+  return { properties };
+}
+
+function mapDispatch(dispatch) {
+  return {
+    actions: bindActionCreators(actions, dispatch),
+  };
+}
+
+const Connector = connect(mapState, mapDispatch)(PropertiesContainer);
+```
+---
+
+# Some real life example
+
+http://react-bootstrap.github.io/components.html
+
+https://github.com/christianalfoni/formsy-react
+
+
+    </textarea>
+    <script src="https://gnab.github.io/remark/downloads/remark-latest.min.js">
+    </script>
+    <script>
+      var slideshow = remark.create();
+    </script>
+  </body>
+</html>
