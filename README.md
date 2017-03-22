@@ -7,5 +7,5 @@
 ## View the talks
 
 * Estrutura de dados e collections em Python [non interactive version here](https://aericson.github.io/talks/Estrutura%20de%20Dados%20e%20Collections/)
-* Django and React [here](https://aericson.github.io/talks/React%20for%20Designers/)
-* React for Designers [here](https://aericson.github.io/talks/Django%20and%20React/)
+* Django and React [here](https://aericson.github.io/talks/Django%20and%20React/)
+* React for Designers [here](https://aericson.github.io/talks/React%20for%20Designers/)
